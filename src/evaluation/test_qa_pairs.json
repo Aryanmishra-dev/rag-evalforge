@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "question": "Why was this textbook written?",
+    "expected_answer": "It arose from the need to have a textbook to teach technical writing to Spanish engineering students at university, because existing books were either too theoretical, too practical, or aimed at students with a different cultural background.",
+    "page_number": 5
+  },
+  {
+    "id": 2,
+    "question": "Which writing approach is the central one in the book, and what happens to the other two approaches?",
+    "expected_answer": "The process approach is the central/core approach, and the product and genre approaches are subsumed under it.",
+    "page_number": 5
+  },
+  {
+    "id": 3,
+    "question": "According to the preface, what practice for improving writing cannot be overlooked?",
+    "expected_answer": "Reading. The more you read, the better you will write, since reading improves vocabulary, grammar and writing techniques.",
+    "page_number": 5
+  },
+  {
+    "id": 4,
+    "question": "What does the product approach account for?",
+    "expected_answer": "The linguistic knowledge of texts, basically grammar and text structure, and it recognizes the importance of the text as a final product.",
+    "page_number": 6
+  },
+  {
+    "id": 5,
+    "question": "What does the genre approach acknowledge about writing?",
+    "expected_answer": "It acknowledges that writing takes place in a social context as a response to a particular need and heeds the writing conventions established by the technical and scientific community.",
+    "page_number": 6
+  },
+  {
+    "id": 6,
+    "question": "What are the three main parts the book is organized into?",
+    "expected_answer": "Part I. Introduction to Technical Writing; Part II. The Writing Process; Part III. Handbook.",
+    "page_number": 6
+  },
+  {
+    "id": 7,
+    "question": "What are the types of tasks included in the book?",
+    "expected_answer": "Reflecting on questions, task-based activities, problem-and-solution tasks, critical thinking tasks, and a project.",
+    "page_number": 7
+  },
+  {
+    "id": 8,
+    "question": "What is the main function of the 'reflecting on' activity at the beginning of each chapter?",
+    "expected_answer": "To make students aware of the different aspects dealt with in the chapter; these awareness-raising questions also anticipate what the chapter is about.",
+    "page_number": 7
+  },
+  {
+    "id": 9,
+    "question": "What five categories of knowledge does being multiliterate require?",
+    "expected_answer": "Content knowledge, context knowledge, English language knowledge, genre knowledge, and writing process knowledge.",
+    "page_number": 12
+  },
+  {
+    "id": 10,
+    "question": "What does the book say has been demonstrated about reading and writing?",
+    "expected_answer": "That reading plays a crucial role in learning a foreign language and, most importantly, that good readers make good writers.",
+    "page_number": 12
+  },
+  {
+    "id": 11,
+    "question": "In a company, why do people write progress reports?",
+    "expected_answer": "To inform about a project or activity.",
+    "page_number": 14
+  },
+  {
+    "id": 12,
+    "question": "How do writing skills contribute to saving time and money?",
+    "expected_answer": "Good technical writing saves time and therefore money: if a document is clear and easy to understand, no time is wasted on pondering its meaning.",
+    "page_number": 14
+  },
+  {
+    "id": 13,
+    "question": "What does the product approach take into account in the integrative approach described in the writing process introduction?",
+    "expected_answer": "The linguistic knowledge about texts, namely grammar and text structure.",
+    "page_number": 17
+  },
+  {
+    "id": 14,
+    "question": "What is one benefit of adopting the process approach?",
+    "expected_answer": "It helps the writer overcome the blank page syndrome and therefore get started.",
+    "page_number": 19
+  },
+  {
+    "id": 15,
+    "question": "What does Chapter 2 (the pre-writing stage) focus on?",
+    "expected_answer": "Examining your purpose(s), determining your audience, considering the style and tone to adopt, gathering data, and deciding how to organize information.",
+    "page_number": 20
+  },
+  {
+    "id": 16,
+    "question": "What questions should be addressed in the pre-writing stage?",
+    "expected_answer": "WHO am I writing to and WHY (audience and purpose); HOW should I transmit the information (tone and style); WHAT ideas should I include (gathering information); HOW should I organize and structure the information.",
+    "page_number": 22
+  },
+  {
+    "id": 17,
+    "question": "What Internet resources are suggested in the introduction to the handbook for improving writing competence?",
+    "expected_answer": "Web-based learning materials and search engines, which can be used as 'dictionaries' providing actual examples of language use.",
+    "page_number": 25
+  },
+  {
+    "id": 18,
+    "question": "What does Chapter 5 open with?",
+    "expected_answer": "A summarized description of the main linguistic elements of the text: the sentence, the clause and the phrase.",
+    "page_number": 28
+  },
+  {
+    "id": 19,
+    "question": "What is a phrase?",
+    "expected_answer": "A linguistic element made up of one or more than one word that has no subject-predicate structure; in a scale of complexity it is found between the word and the clause.",
+    "page_number": 29
+  },
+  {
+    "id": 20,
+    "question": "What are the four main types of non-finite clauses?",
+    "expected_answer": "Present participle clause, past participle clause, infinitive with 'to' clause, and infinitive without 'to' clause.",
+    "page_number": 29
+  }
+]
