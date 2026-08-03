@@ -1,4 +1,6 @@
 """ChromaDB client wrappers for collection management and chunk storage."""
+from typing import List
+
 import chromadb
 
 from src.config import CHROMA_DB_PATH
@@ -28,7 +30,7 @@ def reset_collection(collection_name: str) -> chromadb.Collection:
     )
 
 
-def add_chunks(collection: chromadb.Collection, chunks: list[dict]) -> None:
+def add_chunks(collection: chromadb.Collection, chunks: List[dict]) -> None:
     """Upsert chunk records into the given collection."""
     collection.upsert(
         ids=[c["chunk_id"] for c in chunks],

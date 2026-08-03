@@ -1,4 +1,6 @@
 """CLI and API to benchmark all chunking strategies against the QA pairs."""
+from typing import List
+
 import argparse
 import datetime
 import json
@@ -15,7 +17,7 @@ TEST_PAIRS_PATH = Path("src/evaluation/test_qa_pairs.json")
 RESULTS_DIR = Path("data/eval_results")
 
 
-def evaluate_retrieval(collection, pairs: list[dict], k: int) -> dict:
+def evaluate_retrieval(collection, pairs: List[dict], k: int) -> dict:
     """Score a collection against QA pairs, returning average hit_rate@k and MRR."""
     hits = []
     rrs = []

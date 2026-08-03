@@ -1,4 +1,6 @@
 """Sweep the semantic chunker threshold to match a target chunk count."""
+from typing import List
+
 import json
 import sys
 from pathlib import Path
@@ -18,7 +20,7 @@ K = 5
 TARGET_CHUNKS = 125
 
 
-def avg_len(chunks: list[dict]) -> float:
+def avg_len(chunks: List[dict]) -> float:
     """Return the mean character length of the given chunks."""
     return sum(len(c["text"]) for c in chunks) / len(chunks)
 

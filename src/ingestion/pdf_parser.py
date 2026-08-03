@@ -1,8 +1,10 @@
 """PDF text extraction using PyMuPDF."""
+from typing import List
+
 import fitz
 
 
-def parse_pdf(pdf_path: str) -> list[dict]:
+def parse_pdf(pdf_path: str) -> List[dict]:
     """Extract each PDF page into {"page_number": int, "text": str}.
 
     page_number is the 1-based PDF page index, matching the page numbers used

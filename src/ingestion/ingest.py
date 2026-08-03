@@ -1,4 +1,6 @@
 """CLI to parse, chunk, embed, and store a PDF into all four strategy collections."""
+from typing import List
+
 import argparse
 import hashlib
 import sys
@@ -25,7 +27,7 @@ STRATEGIES = {
 }
 
 
-def generate_doc_id(pages: list[dict]) -> str:
+def generate_doc_id(pages: List[dict]) -> str:
     """Content-hash of the parsed text; stable across re-ingests of the same file."""
     digest = hashlib.sha256("".join(p["text"] for p in pages).encode()).hexdigest()
     return digest[:16]

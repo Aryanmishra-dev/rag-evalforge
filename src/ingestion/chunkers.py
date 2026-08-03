@@ -1,15 +1,17 @@
 """Four chunking strategies: fixed-size, recursive, sentence, and semantic."""
+from typing import List, Tuple
+
 import re
 
 from src.embeddings.embedder import embed
 
 
 def chunk_fixed(
-    pages: list[dict],
+    pages: List[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-) -> list[dict]:
+) -> List[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -39,10 +41,10 @@ def chunk_fixed(
     return chunks
 
 
-def _split_into_pieces(text: str, separators: list[str], chunk_size: int) -> list[str]:
+def _split_into_pieces(text: str, separators: List[str], chunk_size: int) -> List[str]:
     pieces = []
 
-    def recurse(s: str, seps: list[str]) -> None:
+    def recurse(s: str, seps: List[str]) -> None:
         if len(s) <= chunk_size or not seps:
             if s.strip():
                 pieces.append(s)
@@ -54,7 +56,7 @@ def _split_into_pieces(text: str, separators: list[str], chunk_size: int) -> lis
     return pieces
 
 
-def _merge_pieces(pieces: list[str], chunk_size: int, overlap: int) -> list[str]:
+def _merge_pieces(pieces: List[str], chunk_size: int, overlap: int) -> List[str]:
     chunks = []
     buffer = ""
     for piece in pieces:
@@ -79,12 +81,12 @@ def _merge_pieces(pieces: list[str], chunk_size: int, overlap: int) -> list[str]
 
 
 def chunk_recursive(
-    pages: list[dict],
+    pages: List[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-    separators: tuple[str, ...] = ("\n\n", "\n", ". ", " "),
-) -> list[dict]:
+    separators: Tuple[str, ...] = ("\n\n", "\n", ". ", " "),
+) -> List[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -111,12 +113,12 @@ def chunk_recursive(
     return chunks
 
 
-def _split_sentences(text: str) -> list[str]:
+def _split_sentences(text: str) -> List[str]:
     parts = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text)]
     return [s for s in parts if s]
 
 
-def _overlap_tail(sentences: list[str], overlap: int) -> list[str]:
+def _overlap_tail(sentences: List[str], overlap: int) -> List[str]:
     """Return trailing sentences to carry as overlap.
 
     Carries up to `overlap` characters, but capped at 2 sentences — so this
@@ -138,10 +140,10 @@ def _overlap_tail(sentences: list[str], overlap: int) -> list[str]:
     return tail
 
 
-def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> list[str]:
+def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> List[str]:
     sentences = _split_sentences(text)
-    page_chunks: list[str] = []
-    buffer: list[str] = []
+    page_chunks: List[str] = []
+    buffer: List[str] = []
     for sent in sentences:
         if len(sent) > chunk_size:
             if buffer:
@@ -163,11 +165,11 @@ def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> list[str]:
 
 
 def chunk_sentence(
-    pages: list[dict],
+    pages: List[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-) -> list[dict]:
+) -> List[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -192,7 +194,7 @@ def chunk_sentence(
     return chunks
 
 
-def _cosine(a: list[float], b: list[float]) -> float:
+def _cosine(a: List[float], b: List[float]) -> float:
     dot = sum(x * y for x, y in zip(a, b))
     na = sum(x * x for x in a) ** 0.5
     nb = sum(x * x for x in b) ** 0.5
@@ -206,7 +208,7 @@ def _semantic_chunk_page(
     chunk_size: int,
     overlap: int,
     threshold: float,
-) -> list[str]:
+) -> List[str]:
     sentences = _split_sentences(text)
     if not sentences:
         return []
@@ -215,7 +217,7 @@ def _semantic_chunk_page(
         _cosine(vectors[i], vectors[i + 1])
         for i in range(len(vectors) - 1)
     ]
-    page_chunks: list[str] = []
+    page_chunks: List[str] = []
     buffer = [sentences[0]]
     for i in range(1, len(sentences)):
         boundary = similarities[i - 1] < threshold
@@ -230,12 +232,12 @@ def _semantic_chunk_page(
 
 
 def chunk_semantic(
-    pages: list[dict],
+    pages: List[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
     threshold: float = 0.7,
-) -> list[dict]:
+) -> List[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]

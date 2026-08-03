@@ -1,4 +1,6 @@
 """Streamlit UI for ingesting PDFs, retrieving chunks, and benchmarking strategies."""
+from typing import Dict, Optional
+
 import json
 import sys
 import tempfile
@@ -34,7 +36,7 @@ STRATEGIES = list(CHUNKERS)
 st.set_page_config(page_title="RAG EvalForge", layout="wide")
 
 
-def collection_counts() -> dict[str, int]:
+def collection_counts() -> Dict[str, int]:
     """Return the chunk count for each strategy collection."""
     return {s: get_collection(f"rag_{s}").count() for s in STRATEGIES}
 
@@ -55,7 +57,7 @@ def ingest_pdf(pdf_path: Path) -> dict:
     return {"doc_id": doc_id, "n_pages": len(pages), "chunk_counts": counts}
 
 
-def retrieve(strategy: str, question: str, k: int) -> dict | None:
+def retrieve(strategy: str, question: str, k: int) -> Optional[Dict]:
     """Return the top-k Chroma query result for `question`, or None if empty."""
     collection = get_collection(f"rag_{strategy}")
     if collection.count() == 0:
