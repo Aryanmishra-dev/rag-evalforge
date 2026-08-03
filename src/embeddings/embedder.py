@@ -1,19 +1,19 @@
+"""Ollama-backed embedding function and helper for ChromaDB."""
 import ollama
 from chromadb import Documents, EmbeddingFunction, Embeddings
+
 from src.config import EMBED_MODEL
 
 
 class OllamaEmbeddingFunction(EmbeddingFunction):
-    def __init__(self):
-        pass
+    """Chroma embedding function that delegates to the local Ollama server."""
 
-    def __call__(self, input: Documents) -> Embeddings:
-        embeddings = []
-        for text in input:
-            embeddings.append(embed(text))
-        return embeddings
+    def __call__(self, texts: Documents) -> Embeddings:
+        """Embed every input document and return the resulting vectors."""
+        return [embed(text) for text in texts]
 
 
 def embed(text: str) -> list[float]:
+    """Return the Ollama embedding vector for a single text string."""
     response = ollama.embeddings(model=EMBED_MODEL, prompt=text)
     return response["embedding"]

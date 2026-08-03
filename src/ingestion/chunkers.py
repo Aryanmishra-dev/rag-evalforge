@@ -1,9 +1,15 @@
+"""Four chunking strategies: fixed-size, recursive, sentence, and semantic."""
 import re
 
 from src.embeddings.embedder import embed
 
 
-def chunk_fixed(pages: list[dict], doc_id: str, chunk_size: int = 500, overlap: int = 50) -> list[dict]:
+def chunk_fixed(
+    pages: list[dict],
+    doc_id: str,
+    chunk_size: int = 500,
+    overlap: int = 50,
+) -> list[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -132,6 +138,30 @@ def _overlap_tail(sentences: list[str], overlap: int) -> list[str]:
     return tail
 
 
+def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> list[str]:
+    sentences = _split_sentences(text)
+    page_chunks: list[str] = []
+    buffer: list[str] = []
+    for sent in sentences:
+        if len(sent) > chunk_size:
+            if buffer:
+                page_chunks.append(" ".join(buffer))
+                buffer = []
+            for start in range(0, len(sent), chunk_size):
+                piece = sent[start:start + chunk_size]
+                if piece.strip():
+                    page_chunks.append(piece)
+            continue
+        if buffer and len(" ".join(buffer)) + len(sent) + 1 > chunk_size:
+            tail = _overlap_tail(buffer, overlap)
+            page_chunks.append(" ".join(buffer))
+            buffer = list(tail)
+        buffer.append(sent)
+    if buffer:
+        page_chunks.append(" ".join(buffer))
+    return page_chunks
+
+
 def chunk_sentence(
     pages: list[dict],
     doc_id: str,
@@ -147,29 +177,10 @@ def chunk_sentence(
 
     chunks = []
     for page in pages:
-        text = page["text"]
         page_number = page["page_number"]
-        sentences = _split_sentences(text)
-        page_chunks: list[str] = []
-        buffer: list[str] = []
-        for sent in sentences:
-            if len(sent) > chunk_size:
-                if buffer:
-                    page_chunks.append(" ".join(buffer))
-                    buffer = []
-                for start in range(0, len(sent), chunk_size):
-                    piece = sent[start:start + chunk_size]
-                    if piece.strip():
-                        page_chunks.append(piece)
-                continue
-            if buffer and len(" ".join(buffer)) + len(sent) + 1 > chunk_size:
-                tail = _overlap_tail(buffer, overlap)
-                page_chunks.append(" ".join(buffer))
-                buffer = list(tail)
-            buffer.append(sent)
-        if buffer:
-            page_chunks.append(" ".join(buffer))
-        for i, chunk_text in enumerate(page_chunks):
+        for i, chunk_text in enumerate(
+            _sentence_chunk_page(page["text"], chunk_size, overlap)
+        ):
             if len(chunk_text.strip()) < 20:
                 continue
             chunks.append({
@@ -188,6 +199,34 @@ def _cosine(a: list[float], b: list[float]) -> float:
     if na == 0 or nb == 0:
         return 0.0
     return dot / (na * nb)
+
+
+def _semantic_chunk_page(
+    text: str,
+    chunk_size: int,
+    overlap: int,
+    threshold: float,
+) -> list[str]:
+    sentences = _split_sentences(text)
+    if not sentences:
+        return []
+    vectors = [embed(s) for s in sentences]
+    similarities = [
+        _cosine(vectors[i], vectors[i + 1])
+        for i in range(len(vectors) - 1)
+    ]
+    page_chunks: list[str] = []
+    buffer = [sentences[0]]
+    for i in range(1, len(sentences)):
+        boundary = similarities[i - 1] < threshold
+        over_size = len(" ".join(buffer)) + len(sentences[i]) + 1 > chunk_size
+        if boundary or over_size:
+            page_chunks.append(" ".join(buffer))
+            buffer = [buffer[-1]] if overlap > 0 else []
+        buffer.append(sentences[i])
+    if buffer:
+        page_chunks.append(" ".join(buffer))
+    return page_chunks
 
 
 def chunk_semantic(
@@ -210,28 +249,10 @@ def chunk_semantic(
 
     chunks = []
     for page in pages:
-        text = page["text"]
         page_number = page["page_number"]
-        sentences = _split_sentences(text)
-        if not sentences:
-            continue
-        vectors = [embed(s) for s in sentences]
-        similarities = [
-            _cosine(vectors[i], vectors[i + 1])
-            for i in range(len(vectors) - 1)
-        ]
-        page_chunks: list[str] = []
-        buffer = [sentences[0]]
-        for i in range(1, len(sentences)):
-            boundary = similarities[i - 1] < threshold
-            over_size = len(" ".join(buffer)) + len(sentences[i]) + 1 > chunk_size
-            if boundary or over_size:
-                page_chunks.append(" ".join(buffer))
-                buffer = [buffer[-1]] if overlap > 0 else []
-            buffer.append(sentences[i])
-        if buffer:
-            page_chunks.append(" ".join(buffer))
-        for i, chunk_text in enumerate(page_chunks):
+        for i, chunk_text in enumerate(
+            _semantic_chunk_page(page["text"], chunk_size, overlap, threshold)
+        ):
             if len(chunk_text.strip()) < 20:
                 continue
             chunks.append({

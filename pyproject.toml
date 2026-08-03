@@ -1,0 +1,6 @@
+[tool.pylint."messages control"]
+# The CLI scripts and Streamlit app insert their project root onto sys.path so
+# they can be run directly (e.g. `python src/ingestion/ingest.py`) before
+# importing `src.*`. Those imports are intentionally positioned after the
+# sys.path line, so the positional check is disabled project-wide.
+disable = ["wrong-import-position"]

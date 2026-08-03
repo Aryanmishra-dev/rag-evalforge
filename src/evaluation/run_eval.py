@@ -1,3 +1,4 @@
+"""CLI and API to benchmark all chunking strategies against the QA pairs."""
 import argparse
 import datetime
 import json
@@ -14,30 +15,38 @@ TEST_PAIRS_PATH = Path("src/evaluation/test_qa_pairs.json")
 RESULTS_DIR = Path("data/eval_results")
 
 
+def evaluate_retrieval(collection, pairs: list[dict], k: int) -> dict:
+    """Score a collection against QA pairs, returning average hit_rate@k and MRR."""
+    hits = []
+    rrs = []
+    for pair in pairs:
+        result = query_collection(collection, pair["question"], n_results=k)
+        pages = extract_pages(result)
+        hits.append(hit_rate_at_k(pages, pair["page_number"]))
+        rrs.append(reciprocal_rank(pages, pair["page_number"]))
+    return {
+        "avg_hit_rate": sum(hits) / len(hits),
+        "avg_mrr": sum(rrs) / len(rrs),
+    }
+
+
 def run_eval(k: int = 5) -> dict:
-    pairs = json.loads(TEST_PAIRS_PATH.read_text())
+    """Benchmark every strategy collection against the QA pairs."""
+    pairs = json.loads(TEST_PAIRS_PATH.read_text(encoding="utf-8"))
     results = {}
     for strategy in STRATEGIES:
         collection = get_collection(f"rag_{strategy}")
-        count = collection.count()
-        if count == 0:
-            print(f"WARNING: collection 'rag_{strategy}' is empty ({count} chunks). "
-                  f"Run ingestion first.")
-        hits = []
-        rrs = []
-        for pair in pairs:
-            result = query_collection(collection, pair["question"], n_results=k)
-            pages = extract_pages(result)
-            hits.append(hit_rate_at_k(pages, pair["page_number"]))
-            rrs.append(reciprocal_rank(pages, pair["page_number"]))
-        results[strategy] = {
-            "avg_hit_rate": sum(hits) / len(hits),
-            "avg_mrr": sum(rrs) / len(rrs),
-        }
+        if collection.count() == 0:
+            print(
+                f"WARNING: collection 'rag_{strategy}' is empty (0 chunks). "
+                f"Run ingestion first."
+            )
+        results[strategy] = evaluate_retrieval(collection, pairs, k)
     return results
 
 
 def main() -> None:
+    """Run the benchmark from the command line and save the results."""
     parser = argparse.ArgumentParser(description="Run RAG chunking-strategy benchmark.")
     parser.add_argument("--k", type=int, default=5, help="Retrieved chunks per query.")
     args = parser.parse_args()
@@ -52,7 +61,7 @@ def main() -> None:
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     out_path = RESULTS_DIR / f"eval_results_{timestamp}.json"
-    out_path.write_text(json.dumps(results, indent=2))
+    out_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
     print(f"\nSaved to {out_path}")
 
 

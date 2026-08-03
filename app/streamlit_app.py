@@ -1,3 +1,4 @@
+"""Streamlit UI for ingesting PDFs, retrieving chunks, and benchmarking strategies."""
 import json
 import sys
 import tempfile
@@ -6,10 +7,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+import ollama
 import pandas as pd
 import streamlit as st
-
-import ollama
 
 from src.config import LLM_MODEL
 from src.embeddings.chroma_client import add_chunks, get_collection
@@ -35,10 +35,12 @@ st.set_page_config(page_title="RAG EvalForge", layout="wide")
 
 
 def collection_counts() -> dict[str, int]:
+    """Return the chunk count for each strategy collection."""
     return {s: get_collection(f"rag_{s}").count() for s in STRATEGIES}
 
 
 def ingest_pdf(pdf_path: Path) -> dict:
+    """Chunk and embed `pdf_path` into all four strategy collections."""
     pages = parse_pdf(str(pdf_path))
     doc_id = generate_doc_id(pages)
     counts = {}
@@ -54,13 +56,15 @@ def ingest_pdf(pdf_path: Path) -> dict:
 
 
 def retrieve(strategy: str, question: str, k: int) -> dict | None:
+    """Return the top-k Chroma query result for `question`, or None if empty."""
     collection = get_collection(f"rag_{strategy}")
     if collection.count() == 0:
         return None
     return collection.query(query_texts=[question], n_results=k)
 
 
-def generate_answer(question: str, results: dict, strategy: str) -> str:
+def generate_answer(question: str, results: dict) -> str:
+    """Generate an LLM answer grounded in the retrieved chunks."""
     context = "\n\n".join(
         f"[source: page {meta['page_number']}] {doc}"
         for doc, meta in zip(results["documents"][0], results["metadatas"][0])
@@ -77,7 +81,16 @@ def generate_answer(question: str, results: dict, strategy: str) -> str:
     return response["message"]["content"]
 
 
+def render_retrieved(docs: list, metas: list, dists: list) -> None:
+    """Display the retrieved chunks as expandable entries."""
+    for rank, (doc, meta, dist) in enumerate(zip(docs, metas, dists), start=1):
+        label = f"#{rank}  |  page {meta['page_number']}  |  distance {dist:.3f}"
+        with st.expander(label):
+            st.write(doc)
+
+
 def render_ingest() -> None:
+    """Render the Ingest page: parse, chunk, and embed a PDF."""
     st.header("Ingest")
     st.write(
         "Parse a PDF, chunk it with all four strategies, and embed the chunks "
@@ -106,7 +119,7 @@ def render_ingest() -> None:
         try:
             with st.spinner("Ingesting (semantic strategy embeds each sentence)..."):
                 result = ingest_pdf(pdf_source)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             st.error(f"Ingestion failed: {exc}")
             return
         st.session_state["last_ingest"] = result
@@ -132,6 +145,7 @@ def render_ingest() -> None:
 
 
 def render_ask() -> None:
+    """Render the Ask page: retrieve top-k chunks and optionally generate an answer."""
     st.header("Ask")
     st.write(
         "Retrieve the most relevant chunks from a strategy's collection and, "
@@ -160,24 +174,22 @@ def render_ask() -> None:
         dists = results["distances"][0]
 
     st.subheader("Retrieved chunks")
-    for rank, (doc, meta, dist) in enumerate(zip(docs, metas, dists), start=1):
-        label = f"#{rank}  |  page {meta['page_number']}  |  distance {dist:.3f}"
-        with st.expander(label):
-            st.write(doc)
+    render_retrieved(docs, metas, dists)
 
     if with_answer:
         st.subheader("Answer")
         try:
             with st.spinner(f"Generating with {LLM_MODEL}..."):
-                answer = generate_answer(question, results, strategy)
+                answer = generate_answer(question, results)
             st.markdown(answer)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             st.error(f"Generation failed: {exc}")
 
 
 def render_evaluate() -> None:
+    """Render the Evaluate page: run the benchmark and display results."""
     st.header("Evaluate")
-    n_pairs = len(json.loads(TEST_PAIRS_PATH.read_text()))
+    n_pairs = len(json.loads(TEST_PAIRS_PATH.read_text(encoding="utf-8")))
     st.write(
         f"Run the retrieval benchmark against the {n_pairs} hand-labeled QA pairs "
         "in `src/evaluation/test_qa_pairs.json` and compare strategies on "
@@ -189,12 +201,12 @@ def render_evaluate() -> None:
         try:
             with st.spinner(f"Evaluating {len(STRATEGIES)} strategies x {n_pairs} queries..."):
                 results = run_eval(k=k)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-exception-caught
             st.error(f"Evaluation failed: {exc}")
             return
 
         out_path = RESULTS_DIR / f"eval_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-        out_path.write_text(json.dumps(results, indent=2))
+        out_path.write_text(json.dumps(results, indent=2), encoding="utf-8")
         st.session_state["last_eval"] = results
         st.session_state["last_eval_path"] = str(out_path)
 
@@ -204,6 +216,7 @@ def render_evaluate() -> None:
 
 
 def eval_frame(results: dict) -> pd.DataFrame:
+    """Convert eval results into a rounded DataFrame for display."""
     frame = pd.DataFrame(results).T
     frame = frame.rename(columns={"avg_hit_rate": "hit_rate@k", "avg_mrr": "MRR"})
     frame.index.name = "strategy"
@@ -211,6 +224,7 @@ def eval_frame(results: dict) -> pd.DataFrame:
 
 
 def render_history() -> None:
+    """Render the History page: compare and download saved evaluation runs."""
     st.header("History")
     files = sorted(RESULTS_DIR.glob("eval_results_*.json"))
     if not files:
@@ -219,7 +233,7 @@ def render_history() -> None:
 
     rows = []
     for path in files:
-        data = json.loads(path.read_text())
+        data = json.loads(path.read_text(encoding="utf-8"))
         row = {"run": path.stem.removeprefix("eval_results_")}
         for strategy, metrics in data.items():
             row[f"{strategy} hit@k"] = metrics["avg_hit_rate"]
@@ -227,21 +241,23 @@ def render_history() -> None:
         rows.append(row)
 
     st.subheader("All runs")
-    st.dataframe(pd.DataFrame(rows).sort_values("run", ascending=False).round(3), width="stretch")
+    runs = pd.DataFrame(rows).sort_values("run", ascending=False).round(3)
+    st.dataframe(runs, width="stretch")
 
     st.subheader("Inspect a run")
     selected = st.selectbox("Run", [r["run"] for r in rows])
     path = next(p for p in files if p.stem == f"eval_results_{selected}")
-    st.dataframe(eval_frame(json.loads(path.read_text())), width="stretch")
+    st.dataframe(eval_frame(json.loads(path.read_text(encoding="utf-8"))), width="stretch")
     st.download_button(
         "Download JSON",
-        data=path.read_text(),
+        data=path.read_text(encoding="utf-8"),
         file_name=path.name,
         mime="application/json",
     )
 
 
-def render_sidebar() -> None:
+def render_sidebar() -> str:
+    """Render the sidebar navigation and return the selected page name."""
     with st.sidebar:
         st.title("RAG EvalForge")
         page = st.radio(
@@ -257,6 +273,7 @@ def render_sidebar() -> None:
 
 
 def main() -> None:
+    """Route to the page selected in the sidebar."""
     page = render_sidebar()
     if page == "Ingest":
         render_ingest()

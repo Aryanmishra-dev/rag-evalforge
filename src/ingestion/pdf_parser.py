@@ -1,3 +1,4 @@
+"""PDF text extraction using PyMuPDF."""
 import fitz
 
 

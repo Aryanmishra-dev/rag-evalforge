@@ -1,3 +1,4 @@
+"""Retrieval quality metrics: hit_rate@k, reciprocal rank, and page extraction."""
 def hit_rate_at_k(retrieved_pages: list[int], expected_page: int) -> int:
     """Return 1 if any retrieved chunk's page matches the expected page, else 0."""
     return 1 if expected_page in retrieved_pages else 0

@@ -1,25 +1,15 @@
-import ollama
+"""Smoke test verifying that Ollama (LLM + embeddings) and ChromaDB are reachable."""
 import chromadb
-from chromadb import Documents, EmbeddingFunction, Embeddings
-from src.config import LLM_MODEL, EMBED_MODEL, CHROMA_DB_PATH
+import ollama
 
-# Custom embedding function wrapping Ollama
-class OllamaEmbeddingFunction(EmbeddingFunction):
-    def __init__(self) -> None:
-        pass
-
-    def __call__(self, input: Documents) -> Embeddings:
-        embeddings = []
-        for text in input:
-            response = ollama.embeddings(model=EMBED_MODEL, prompt=text)
-            embeddings.append(response["embedding"])
-        return embeddings
+from src.config import CHROMA_DB_PATH, EMBED_MODEL, LLM_MODEL
+from src.embeddings.embedder import OllamaEmbeddingFunction
 
 # Test 1 — LLM reachable
 print("Testing LLM...")
 response = ollama.chat(
     model=LLM_MODEL,
-    messages=[{"role": "user", "content": "Say hello in one word."}]
+    messages=[{"role": "user", "content": "Say hello in one word."}],
 )
 print("LLM response:", response["message"]["content"])
 
@@ -36,7 +26,7 @@ ollama_ef = OllamaEmbeddingFunction()
 
 collection = client.get_or_create_collection(
     name="smoke_test",
-    embedding_function=ollama_ef
+    embedding_function=ollama_ef,
 )
 collection.add(documents=["hello world"], ids=["1"])
 result = collection.query(query_texts=["hello"], n_results=1)

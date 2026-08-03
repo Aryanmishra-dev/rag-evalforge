@@ -1,3 +1,4 @@
+"""ChromaDB client wrappers for collection management and chunk storage."""
 import chromadb
 
 from src.config import CHROMA_DB_PATH
@@ -7,18 +8,19 @@ _client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 _embedding_function = OllamaEmbeddingFunction()
 
 
-def get_collection(collection_name: str):
+def get_collection(collection_name: str) -> chromadb.Collection:
+    """Return the named collection, creating it with the Ollama embedder if needed."""
     return _client.get_or_create_collection(
         name=collection_name,
         embedding_function=_embedding_function,
     )
 
 
-def reset_collection(collection_name: str):
+def reset_collection(collection_name: str) -> chromadb.Collection:
     """Delete and recreate a collection, so re-ingest leaves no orphaned chunks."""
     try:
         _client.delete_collection(collection_name)
-    except Exception:
+    except chromadb.errors.NotFoundError:
         pass
     return _client.get_or_create_collection(
         name=collection_name,
@@ -26,7 +28,8 @@ def reset_collection(collection_name: str):
     )
 
 
-def add_chunks(collection, chunks: list[dict]) -> None:
+def add_chunks(collection: chromadb.Collection, chunks: list[dict]) -> None:
+    """Upsert chunk records into the given collection."""
     collection.upsert(
         ids=[c["chunk_id"] for c in chunks],
         documents=[c["text"] for c in chunks],
@@ -40,5 +43,8 @@ def add_chunks(collection, chunks: list[dict]) -> None:
     )
 
 
-def query_collection(collection, query_text: str, n_results: int = 10):
+def query_collection(
+    collection: chromadb.Collection, query_text: str, n_results: int = 10
+) -> dict:
+    """Query the collection and return the top `n_results` matches for `query_text`."""
     return collection.query(query_texts=[query_text], n_results=n_results)

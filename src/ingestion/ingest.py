@@ -1,3 +1,4 @@
+"""CLI to parse, chunk, embed, and store a PDF into all four strategy collections."""
 import argparse
 import hashlib
 import sys
@@ -31,6 +32,7 @@ def generate_doc_id(pages: list[dict]) -> str:
 
 
 def ingest(pdf_path: Path) -> None:
+    """Parse `pdf_path` and index one chunk per strategy into ChromaDB."""
     pages = parse_pdf(str(pdf_path))
     doc_id = generate_doc_id(pages)
     print(f"Parsed {len(pages)} pages | doc_id={doc_id}")
@@ -43,6 +45,7 @@ def ingest(pdf_path: Path) -> None:
 
 
 def main() -> None:
+    """Run the ingest CLI."""
     parser = argparse.ArgumentParser(description="Ingest a PDF into all 4 strategy collections.")
     parser.add_argument("pdf", nargs="?", type=Path, default=DEFAULT_PDF,
                         help=f"PDF to ingest (default: {DEFAULT_PDF})")
