@@ -7,9 +7,14 @@
 # Single-method classes are an intentional design pattern here: the reranker
 # strategy objects and pytest fixture fakes each expose exactly one public
 # method, so the "too few public methods" refactoring hint is disabled.
+#
+# Protocol method bodies keep an ellipsis even though a docstring already
+# forms a valid body: pyright treats an ellipsis-only body as an abstract
+# stub, so removing it would break the type check for `Reranker.rerank`.
 disable = [
     "wrong-import-position",
     "too-few-public-methods",
+    "unnecessary-ellipsis",
 ]
 
 [tool.pylint.design]

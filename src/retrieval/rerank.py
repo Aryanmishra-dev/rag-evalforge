@@ -25,6 +25,7 @@ class Reranker(Protocol):
 
     def rerank(self, query: str, chunks: list[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
         """Return the top ``top_k`` chunks reordered best-first."""
+        ...
 
 
 def _cosine_scores(query: np.ndarray, chunk_vectors: np.ndarray) -> np.ndarray:
