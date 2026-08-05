@@ -1,5 +1,4 @@
 """Four chunking strategies: fixed-size, recursive, sentence, and semantic."""
-from typing import List, Tuple
 
 import re
 
@@ -7,11 +6,11 @@ from src.embeddings.embedder import embed
 
 
 def chunk_fixed(
-    pages: List[dict],
+    pages: list[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-) -> List[dict]:
+) -> list[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -28,23 +27,25 @@ def chunk_fixed(
             end = min(start + chunk_size, len(text))
             chunk_text = text[start:end]
             if len(chunk_text.strip()) < 20:
-                start += (chunk_size - overlap)
+                start += chunk_size - overlap
                 continue
             chunk_id = f"{doc_id}_fixed_{page_number}_{start}_{end}"
-            chunks.append({
-                "chunk_id": chunk_id,
-                "text": chunk_text,
-                "page_number": page_number,
-                "strategy": "fixed"
-            })
-            start += (chunk_size - overlap)
+            chunks.append(
+                {
+                    "chunk_id": chunk_id,
+                    "text": chunk_text,
+                    "page_number": page_number,
+                    "strategy": "fixed",
+                }
+            )
+            start += chunk_size - overlap
     return chunks
 
 
-def _split_into_pieces(text: str, separators: List[str], chunk_size: int) -> List[str]:
+def _split_into_pieces(text: str, separators: list[str], chunk_size: int) -> list[str]:
     pieces = []
 
-    def recurse(s: str, seps: List[str]) -> None:
+    def recurse(s: str, seps: list[str]) -> None:
         if len(s) <= chunk_size or not seps:
             if s.strip():
                 pieces.append(s)
@@ -56,7 +57,7 @@ def _split_into_pieces(text: str, separators: List[str], chunk_size: int) -> Lis
     return pieces
 
 
-def _merge_pieces(pieces: List[str], chunk_size: int, overlap: int) -> List[str]:
+def _merge_pieces(pieces: list[str], chunk_size: int, overlap: int) -> list[str]:
     chunks = []
     buffer = ""
     for piece in pieces:
@@ -64,7 +65,7 @@ def _merge_pieces(pieces: List[str], chunk_size: int, overlap: int) -> List[str]
             if buffer.strip():
                 chunks.append(buffer)
             for start in range(0, len(piece), chunk_size):
-                chunk = piece[start:start + chunk_size]
+                chunk = piece[start : start + chunk_size]
                 if chunk.strip():
                     chunks.append(chunk)
             buffer = ""
@@ -81,12 +82,12 @@ def _merge_pieces(pieces: List[str], chunk_size: int, overlap: int) -> List[str]
 
 
 def chunk_recursive(
-    pages: List[dict],
+    pages: list[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-    separators: Tuple[str, ...] = ("\n\n", "\n", ". ", " "),
-) -> List[dict]:
+    separators: tuple[str, ...] = ("\n\n", "\n", ". ", " "),
+) -> list[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -104,21 +105,80 @@ def chunk_recursive(
             if len(chunk_text.strip()) < 20:
                 continue
             chunk_id = f"{doc_id}_recursive_{page_number}_{i}"
-            chunks.append({
-                "chunk_id": chunk_id,
-                "text": chunk_text,
-                "page_number": page_number,
-                "strategy": "recursive"
-            })
+            chunks.append(
+                {
+                    "chunk_id": chunk_id,
+                    "text": chunk_text,
+                    "page_number": page_number,
+                    "strategy": "recursive",
+                }
+            )
     return chunks
 
 
-def _split_sentences(text: str) -> List[str]:
-    parts = [s.strip() for s in re.split(r"(?<=[.!?])\s+", text)]
-    return [s for s in parts if s]
+_ABBREVIATIONS = {
+    "mr",
+    "mrs",
+    "ms",
+    "dr",
+    "prof",
+    "sr",
+    "jr",
+    "st",
+    "mt",
+    "vs",
+    "etc",
+    "e.g",
+    "i.e",
+    "cf",
+    "al",
+    "no",
+    "dept",
+    "univ",
+    "fig",
+    "figs",
+    "vol",
+    "pp",
+    "sec",
+    "ch",
+    "ltd",
+    "inc",
+}
+_ABBREV_RE = re.compile(
+    r"\b(" + "|".join(sorted(_ABBREVIATIONS, key=len, reverse=True)) + r")\.|"
+    r"(?<=\b[A-Z])\.(?=\s+[A-Z])",
+    re.IGNORECASE,
+)
+_SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
+_ABBREV_PLACEHOLDER = "\x00{0}\x00"
 
 
-def _overlap_tail(sentences: List[str], overlap: int) -> List[str]:
+def _split_sentences(text: str) -> list[str]:
+    """Split ``text`` into sentences, keeping abbreviations intact.
+
+    Periods inside known abbreviations (``Dr.``, ``e.g.``) and single-letter
+    initials are temporarily masked before splitting, so they are never treated
+    as sentence boundaries.
+    """
+    protected: list[str] = []
+
+    def _protect(match: re.Match) -> str:
+        protected.append(match.group(0))
+        return _ABBREV_PLACEHOLDER.format(len(protected) - 1)
+
+    masked = _ABBREV_RE.sub(_protect, text)
+    raw_parts = [part.strip() for part in _SENTENCE_SPLIT_RE.split(masked)]
+
+    parts: list[str] = []
+    for part in raw_parts:
+        for i, token in enumerate(protected):
+            part = part.replace(_ABBREV_PLACEHOLDER.format(i), token)
+        if part.strip():
+            parts.append(part)
+    return parts
+
+
+def _overlap_tail(sentences: list[str], overlap: int) -> list[str]:
     """Return trailing sentences to carry as overlap.
 
     Carries up to `overlap` characters, but capped at 2 sentences — so this
@@ -140,17 +200,17 @@ def _overlap_tail(sentences: List[str], overlap: int) -> List[str]:
     return tail
 
 
-def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> List[str]:
+def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> list[str]:
     sentences = _split_sentences(text)
-    page_chunks: List[str] = []
-    buffer: List[str] = []
+    page_chunks: list[str] = []
+    buffer: list[str] = []
     for sent in sentences:
         if len(sent) > chunk_size:
             if buffer:
                 page_chunks.append(" ".join(buffer))
                 buffer = []
             for start in range(0, len(sent), chunk_size):
-                piece = sent[start:start + chunk_size]
+                piece = sent[start : start + chunk_size]
                 if piece.strip():
                     page_chunks.append(piece)
             continue
@@ -165,11 +225,11 @@ def _sentence_chunk_page(text: str, chunk_size: int, overlap: int) -> List[str]:
 
 
 def chunk_sentence(
-    pages: List[dict],
+    pages: list[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
-) -> List[dict]:
+) -> list[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -180,22 +240,22 @@ def chunk_sentence(
     chunks = []
     for page in pages:
         page_number = page["page_number"]
-        for i, chunk_text in enumerate(
-            _sentence_chunk_page(page["text"], chunk_size, overlap)
-        ):
+        for i, chunk_text in enumerate(_sentence_chunk_page(page["text"], chunk_size, overlap)):
             if len(chunk_text.strip()) < 20:
                 continue
-            chunks.append({
-                "chunk_id": f"{doc_id}_sentence_{page_number}_{i}",
-                "text": chunk_text,
-                "page_number": page_number,
-                "strategy": "sentence"
-            })
+            chunks.append(
+                {
+                    "chunk_id": f"{doc_id}_sentence_{page_number}_{i}",
+                    "text": chunk_text,
+                    "page_number": page_number,
+                    "strategy": "sentence",
+                }
+            )
     return chunks
 
 
-def _cosine(a: List[float], b: List[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+def _cosine(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
     na = sum(x * x for x in a) ** 0.5
     nb = sum(x * x for x in b) ** 0.5
     if na == 0 or nb == 0:
@@ -208,16 +268,13 @@ def _semantic_chunk_page(
     chunk_size: int,
     overlap: int,
     threshold: float,
-) -> List[str]:
+) -> list[str]:
     sentences = _split_sentences(text)
     if not sentences:
         return []
     vectors = [embed(s) for s in sentences]
-    similarities = [
-        _cosine(vectors[i], vectors[i + 1])
-        for i in range(len(vectors) - 1)
-    ]
-    page_chunks: List[str] = []
+    similarities = [_cosine(vectors[i], vectors[i + 1]) for i in range(len(vectors) - 1)]
+    page_chunks: list[str] = []
     buffer = [sentences[0]]
     for i in range(1, len(sentences)):
         boundary = similarities[i - 1] < threshold
@@ -232,12 +289,12 @@ def _semantic_chunk_page(
 
 
 def chunk_semantic(
-    pages: List[dict],
+    pages: list[dict],
     doc_id: str,
     chunk_size: int = 500,
     overlap: int = 50,
     threshold: float = 0.7,
-) -> List[dict]:
+) -> list[dict]:
     """
     Input: [{"page_number": int, "text": str}, ...]
     Output: [{"chunk_id": str, "text": str, "page_number": int, "strategy": str}, ...]
@@ -257,10 +314,12 @@ def chunk_semantic(
         ):
             if len(chunk_text.strip()) < 20:
                 continue
-            chunks.append({
-                "chunk_id": f"{doc_id}_semantic_{page_number}_{i}",
-                "text": chunk_text,
-                "page_number": page_number,
-                "strategy": "semantic"
-            })
+            chunks.append(
+                {
+                    "chunk_id": f"{doc_id}_semantic_{page_number}_{i}",
+                    "text": chunk_text,
+                    "page_number": page_number,
+                    "strategy": "semantic",
+                }
+            )
     return chunks

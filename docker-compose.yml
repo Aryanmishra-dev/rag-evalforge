@@ -1,0 +1,53 @@
+services:
+  ollama:
+    image: ollama/ollama:latest
+    container_name: rag-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 20s
+      retries: 30
+
+  # One-shot service that pulls the required models before the app starts.
+  models:
+    image: ollama/ollama:latest
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        ollama pull nomic-embed-text
+        ollama pull qwen2.5:7b
+        echo "All models pulled"
+    volumes:
+      - ollama_models:/root/.ollama
+
+  app:
+    build: .
+    depends_on:
+      ollama:
+        condition: service_healthy
+      models:
+        condition: service_completed_successfully
+    ports:
+      - "8502:8501"
+    environment:
+      LLM_MODEL: qwen2.5:7b
+      EMBED_MODEL: nomic-embed-text
+      CHROMA_DB_PATH: ./data/chroma_db
+      OLLAMA_HOST: http://ollama:11434
+      EXPERIMENT_DB_PATH: ./data/experiments.db
+    volumes:
+      - app_data:/app/data
+
+volumes:
+  ollama_models:
+  app_data:

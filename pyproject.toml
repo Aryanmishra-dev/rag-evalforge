@@ -4,3 +4,29 @@
 # importing `src.*`. Those imports are intentionally positioned after the
 # sys.path line, so the positional check is disabled project-wide.
 disable = ["wrong-import-position"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+exclude = ["venv", ".git", "data", "__pycache__", ".pytest_cache", "docker"]
+
+[tool.ruff.lint]
+# Production-grade rule set: Pyflakes + pycodestyle (E/F), isort (I),
+# pyupgrade (UP), bugbear (B), simplify (SIM), comprehensions (C4), and
+# Ruff-specific lints (RUF). E501 is delegated to `ruff format`.
+select = ["E", "F", "I", "UP", "B", "SIM", "C4", "RUF"]
+ignore = [
+    "E501",
+    # Test method names are intentionally verbose; fixtures assert on each other.
+    "SIM108",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = ["S101"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["src", "tests"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"

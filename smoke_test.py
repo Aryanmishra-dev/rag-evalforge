@@ -1,4 +1,5 @@
 """Smoke test verifying that Ollama (LLM + embeddings) and ChromaDB are reachable."""
+
 import chromadb
 import ollama
 
