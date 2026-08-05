@@ -1,7 +1,11 @@
 """Pytest fixtures: hermetic env config, deterministic embeddings, no-network guards."""
+# pylint: disable=unused-argument
+# The fake chat signature mirrors the real ``ollama.chat`` API; callers pass
+# ``model``/``options``/kwargs that the stub intentionally ignores.
 
 import hashlib
 import os
+from collections import deque
 
 os.environ.setdefault("LLM_MODEL", "qwen2.5:7b")
 os.environ.setdefault("EMBED_MODEL", "nomic-embed-text")
@@ -43,14 +47,15 @@ def fake_chat(monkeypatch):
     When empty, a default JSON judge response is returned.
     """
 
-    from collections import deque
-
     class FakeOllama:
+        """Minimal ollama-shaped chat client backed by a scripted response queue."""
+
         def __init__(self):
             self.responses = deque()
             self.calls = []
 
         def chat(self, model=None, messages=None, options=None, **kwargs):
+            """Record the call and return the next scripted (or default) response."""
             self.calls.append(messages)
             content = (
                 self.responses.popleft()

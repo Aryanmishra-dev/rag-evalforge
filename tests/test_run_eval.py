@@ -1,6 +1,9 @@
 """Integration-style tests for the benchmark driver, using fake collections."""
 
 # pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=redefined-outer-name,unused-argument,protected-access
+# Fixtures shadow module-level names; some are injected just to patch
+# internals. `_pretty_print` is exercised directly in the capsys test.
 import pytest
 
 from src.config import EMBED_MODEL

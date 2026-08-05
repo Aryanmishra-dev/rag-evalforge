@@ -1,6 +1,8 @@
 """Unit tests for the dense and hybrid retrievers (offline, using fakes)."""
-# pylint: disable=missing-function-docstring,missing-class-docstring
 
+# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=protected-access
+# The cache-identity test reads `_bm25` directly to assert cross-instance reuse.
 from src.retrieval.dense import dense_retrieve
 from src.retrieval.hybrid import HybridRetriever
 from tests.fakes import FakeCollection

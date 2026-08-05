@@ -1,4 +1,8 @@
 """Unit tests for the RAG evaluation orchestration."""
+# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=unused-argument
+# Test-class method names are self-documenting; fixtures like `fake_chat` and
+# `fake_embed` are sometimes injected only to satisfy evaluation internals.
 
 import json
 
@@ -32,7 +36,6 @@ PAIRS = [
 
 def _retriever(by_question):
     """Build a retriever that returns page hits from a question->pages map."""
-    # pylint: disable=missing-function-docstring,missing-class-docstring
 
     def retrieve(query, k):
         page = by_question[query]

@@ -12,13 +12,12 @@ from typing import Protocol
 import numpy as np
 
 from src.embeddings.embedder import embed
+from src.retrieval.types import RetrievedChunk
 
 try:  # optional heavyweight dependency
     from sentence_transformers import CrossEncoder as _CrossEncoder  # type: ignore
 except ImportError:  # pragma: no cover - exercised only when optional dep absent
     _CrossEncoder = None
-
-from src.retrieval.types import RetrievedChunk
 
 
 class Reranker(Protocol):
@@ -26,7 +25,6 @@ class Reranker(Protocol):
 
     def rerank(self, query: str, chunks: list[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
         """Return the top ``top_k`` chunks reordered best-first."""
-        ...
 
 
 def _cosine_scores(query: np.ndarray, chunk_vectors: np.ndarray) -> np.ndarray:
@@ -45,6 +43,7 @@ class EmbeddingReranker:
     """
 
     def rerank(self, query: str, chunks: list[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
+        """Return the top ``top_k`` chunks ranked by embedding cosine similarity."""
         if not chunks or top_k <= 0:
             return chunks[:top_k]
         query_vector = np.asarray(embed(query), dtype=np.float64)
@@ -75,6 +74,7 @@ class CrossEncoderReranker:
         self._fallback = EmbeddingReranker()
 
     def rerank(self, query: str, chunks: list[RetrievedChunk], top_k: int) -> list[RetrievedChunk]:
+        """Return the top ``top_k`` chunks re-ranked by the cross-encoder."""
         if self._model is None:  # pragma: no cover
             return self._fallback.rerank(query, chunks, top_k)
         if not chunks or top_k <= 0:

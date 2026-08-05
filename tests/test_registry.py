@@ -1,6 +1,8 @@
 """Unit tests for the SQLite experiment registry."""
-# pylint: disable=missing-function-docstring,missing-class-docstring
 
+# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=redefined-outer-name
+# The `registry` fixture shadows the module-level name by design.
 import pytest
 
 from src.experiment.registry import ExperimentRegistry

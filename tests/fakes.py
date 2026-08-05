@@ -19,9 +19,11 @@ class FakeCollection:
         self._query_rank = self._ids
 
     def count(self):
+        """Return the number of documents in the collection."""
         return len(self._ids)
 
-    def get(self, include=None):
+    def get(self, include=None):  # pylint: disable=unused-argument
+        """Return flat ``ids``/``documents``/``metadatas`` lists (Chroma-shaped)."""
         return {
             "ids": list(self._ids),
             "documents": list(self._documents),
@@ -29,6 +31,7 @@ class FakeCollection:
         }
 
     def query(self, query_texts, n_results):
+        """Return Chroma-shaped results, ranking docs by lexical overlap first."""
         query = query_texts[0]
         terms = query.lower().split()
         ranked = sorted(

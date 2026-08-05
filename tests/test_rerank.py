@@ -1,5 +1,8 @@
 """Unit tests for re-ranking."""
 # pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=unused-argument,import-outside-toplevel
+# Fixtures passed only to exercise the (optional) cross-encoder path; the
+# CrossEncoderReranker import is intentionally local to the fallback test.
 
 from src.retrieval.rerank import EmbeddingReranker, build_reranker
 from src.retrieval.types import RetrievedChunk
@@ -52,7 +55,7 @@ class TestBuildReranker:
     def test_default_is_embedding_reranker(self):
         assert isinstance(build_reranker(None), EmbeddingReranker)
 
-    def test_cross_encoder_falls_back_when_unavailable(self, monkeypatch):
+    def test_cross_encoder_falls_back_when_unavailable(self, monkeypatch, fake_embed):
         monkeypatch.setattr("src.retrieval.rerank._CrossEncoder", None)
         from src.retrieval.rerank import CrossEncoderReranker
 

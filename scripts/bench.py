@@ -12,8 +12,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-import src.ingestion.chunkers as chunkers
 from src.evaluation.metrics import hit_rate_at_k, reciprocal_rank
+from src.ingestion import chunkers
 from src.ingestion.chunkers import (
     chunk_fixed,
     chunk_recursive,
@@ -61,6 +61,7 @@ chunkers.embed = _fake_embed
 
 
 def run() -> None:
+    """Exercise the full offline RAG pipeline and report average retrieval scores."""
     docs = [{"page_number": i + 1, "text": DOC} for i in range(30)]
     doc_id = "bench"
 

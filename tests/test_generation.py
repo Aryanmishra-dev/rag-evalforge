@@ -1,5 +1,5 @@
 """Unit tests for answer generation and LLM-as-a-judge scoring (mocked LLM)."""
-# pylint: disable=missing-function-docstring,missing-class-docstring
+# pylint: disable=missing-function-docstring,missing-class-docstring,unused-argument
 
 import pytest
 
