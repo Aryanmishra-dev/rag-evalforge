@@ -33,6 +33,7 @@ It indexes documents under four chunking strategies into separate ChromaDB colle
 - **Generation quality metrics** — LLM-as-a-judge scoring of faithfulness, answer correctness, and answer relevancy.
 - **Experiment tracking** — Every run persisted to SQLite with git commit, config, dataset hash, hyper-parameters, and per-query metrics.
 - **Interactive UI + Docker** — Streamlit dashboard for ingest/query/evaluate/history; one-command deployment via `docker compose`.
+- **MCP server** — exposes ingest, benchmark, and experiment-registry tools to LLM clients (Claude Desktop, etc.) via the Model Context Protocol.
 
 ---
 
@@ -126,6 +127,7 @@ rag-evalforge/
 ├── scripts/               # Benchmark helpers (e.g. scalene profiling target)
 ├── src/
 │   ├── config.py          # Configuration & environment variables
+│   ├── mcp_server.py      # MCP server: pipeline tools for LLM clients
 │   ├── embeddings/        # Ollama embedding functions & ChromaDB layer
 │   ├── ingestion/         # PDF parsing and the four chunkers
 │   ├── retrieval/         # Dense, BM25, hybrid (RRF), and re-ranking
@@ -227,6 +229,46 @@ streamlit run app/streamlit_app.py
 | **Ask** | Retrieve top-k chunks (dense or hybrid, optionally re-ranked) and generate grounded answers |
 | **Evaluate** | Run retrieval or full-RAG benchmarks and save results |
 | **History** | Compare saved evaluation runs side-by-side |
+
+---
+
+## MCP Server
+
+A thin [MCP](https://modelcontextprotocol.io/) server wraps the existing pipeline functions (no logic is duplicated) so LLM clients can drive the harness directly. It always runs against your local Ollama + ChromaDB + SQLite registry.
+
+| Tool | Delegates to | Description |
+|:---|:---|:---|
+| `ingest_pdf` | `src/ingestion/ingest.py` | Parse, chunk, and embed a PDF into all four strategy collections |
+| `run_benchmark` | `src/evaluation/run_eval.py` | Benchmark strategies; retrieval-only or full RAG (LLM-as-a-judge) |
+| `list_collections` | `src/embeddings/chroma_client.py` | Number of indexed chunks per strategy |
+| `list_runs` / `get_run` / `delete_run` | `src/experiment/registry.py` | Inspect and clean up the SQLite experiment registry |
+
+### Run it locally
+
+```sh
+make mcp-server          # or: python src/mcp_server.py
+```
+
+The server speaks **stdio** MCP and chdirs to the repo root on import, so `.env` and the relative `CHROMA_DB_PATH`/`EXPERIMENT_DB_PATH` resolve regardless of launch directory.
+
+### Connect from Claude Desktop
+
+Open `~/Library/Application Support/Claude/claude_desktop_config.json` and add an entry pointing at this repo's interpreter and script:
+
+```json
+{
+  "mcpServers": {
+    "rag-evalforge": {
+      "command": "/absolute/path/to/rag-evalforge/venv/bin/python",
+      "args": ["/absolute/path/to/rag-evalforge/src/mcp_server.py"]
+    }
+  }
+}
+```
+
+Restart Claude Desktop, then ask it to run a benchmark (e.g. *"run the retrieval benchmark with hybrid retrieval"*) — it will call `run_benchmark` and summarize the per-strategy `hit_rate@k`/`MRR`.
+
+> **Caveats** — Ollama must be running and the models must be pulled. `run_benchmark` with `full_rag=True` can take several minutes. Only connect trusted clients: `ingest_pdf` and `delete_run` mutate local state.
 
 ---
 

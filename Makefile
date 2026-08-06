@@ -1,4 +1,4 @@
-.PHONY: help up down logs ingest eval test lint qa profile
+.PHONY: help up down logs ingest eval mcp-server test lint qa profile
 
 help: ## Show available targets
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-12s\033[0m %s\n", $$1, $$2}'
@@ -20,6 +20,9 @@ eval: ## Run the hybrid retrieval benchmark inside the app container
 
 eval-rag: ## Run the full RAG benchmark (LLM-as-a-judge) inside the app container
 	docker compose exec app python src/evaluation/run_eval.py --k 5 --hybrid --rag
+
+mcp-server: ## Run the MCP server on stdio (for Claude Desktop / other MCP clients)
+	python src/mcp_server.py
 
 test: ## Run the offline test suite
 	python -m pytest tests/ -q
