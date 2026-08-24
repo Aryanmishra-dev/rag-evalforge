@@ -1,18 +1,18 @@
 <div align="center">
 
-  <h1>RAG EvalForge</h1>
+  <h1>🚀 RAG EvalForge</h1>
   <p><i>A production-grade Retrieval-Augmented Generation (RAG) research harness that benchmarks chunking strategies and retrieval pipelines on retrieval quality — fully local with Ollama + ChromaDB.</i></p>
 
   <p>
-    <img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg" alt="Python 3.11+">
-    <img src="https://img.shields.io/badge/tests-108%20passed-brightgreen.svg" alt="108 tests passing">
-    <img src="https://img.shields.io/badge/coverage-89%25-brightgreen.svg" alt="89% coverage">
-    <img src="https://img.shields.io/badge/pylint-10.00%2F10-brightgreen.svg" alt="Pylint 10.00/10">
-    <img src="https://img.shields.io/badge/pyright-0%20errors-brightgreen.svg" alt="Pyright clean">
-    <img src="https://img.shields.io/badge/bandit-0%20issues-brightgreen.svg" alt="Bandit clean">
-    <img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg" alt="GitHub Actions CI">
+    <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
+    <img src="https://img.shields.io/badge/tests-108%20passed-brightgreen.svg?style=for-the-badge&logo=pytest&logoColor=white" alt="108 tests passing">
+    <img src="https://img.shields.io/badge/coverage-89%25-brightgreen.svg?style=for-the-badge" alt="89% coverage">
+    <img src="https://img.shields.io/badge/pylint-10.00%2F10-brightgreen.svg?style=for-the-badge" alt="Pylint 10.00/10">
+    <img src="https://img.shields.io/badge/pyright-0%20errors-brightgreen.svg?style=for-the-badge" alt="Pyright clean">
+    <img src="https://img.shields.io/badge/CI-GitHub%20Actions-blue.svg?style=for-the-badge&logo=githubactions&logoColor=white" alt="GitHub Actions CI">
   </p>
-
+  
+  <p><b>✨ Featuring a brand new Premium Streamlit UI with Dark Mode & Glassmorphism ✨</b></p>
 </div>
 
 ---

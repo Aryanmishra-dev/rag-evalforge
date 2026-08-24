@@ -66,6 +66,80 @@ STEP_TIPS = {
 
 st.set_page_config(page_title="RAG EvalForge", layout="wide")
 
+def inject_custom_css() -> None:
+    st.markdown(
+        """
+        <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        
+        html, body, [class*="css"] {
+            font-family: 'Outfit', sans-serif;
+        }
+        
+        /* Glassmorphism for containers */
+        [data-testid="stSidebar"] {
+            background: rgba(26, 31, 46, 0.7) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255,255,255,0.05);
+        }
+        
+        /* Vibrant gradient header */
+        h1, h2, h3 {
+            background: linear-gradient(90deg, #8B5CF6, #00f2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+        
+        /* Stylish buttons */
+        .stButton>button {
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+            border: none !important;
+            background: linear-gradient(90deg, #8B5CF6, #6D28D9) !important;
+            color: white !important;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .stButton>button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(139, 92, 246, 0.3);
+            background: linear-gradient(90deg, #9C77F7, #7C3AED) !important;
+        }
+        
+        /* Stepper Pills */
+        .stepper {display:flex;gap:.75rem;margin:1rem 0 2rem}
+        .steppill {flex:1;text-align:center;padding:.6rem 0;border-radius:.5rem;
+            border:1px solid rgba(255,255,255,0.1);color:#888;background:rgba(255,255,255,0.02);
+            font-weight:600;transition: all 0.3s ease;}
+        .steppill.active {background:linear-gradient(90deg, #8B5CF6, #6D28D9);border-color:#8B5CF6;color:#fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);}
+        .steppill.done {border-color:#8B5CF6;color:#8B5CF6; background:rgba(139, 92, 246, 0.1);}
+        
+        /* Metric cards */
+        [data-testid="stMetric"] {
+            background: rgba(255,255,255,0.03);
+            padding: 1rem;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.3s;
+        }
+        [data-testid="stMetric"]:hover {
+            transform: translateY(-5px);
+            border-color: rgba(139, 92, 246, 0.5);
+        }
+        
+        /* Divider gradient */
+        hr {
+            border: 0;
+            height: 1px;
+            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(139, 92, 246, 0.75), rgba(0, 0, 0, 0));
+        }
+        
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def _step_pills(current: str) -> str:
     """HTML stepper showing all four workflow steps with the current one active."""
@@ -79,16 +153,7 @@ def _step_pills(current: str) -> str:
             else "todo"
         )
         pills.append(f'<span class="steppill {state}">{step}</span>')
-    return (
-        "<style>"
-        ".stepper{display:flex;gap:.5rem;margin:.25rem 0 1rem}"
-        ".steppill{flex:1;text-align:center;padding:.4rem 0;border-radius:.4rem;"
-        "border:1px solid #555;color:#999;background:#222;font-weight:600}"
-        ".steppill.active{background:#4CAF50;border-color:#4CAF50;color:#fff}"
-        ".steppill.done{border-color:#4CAF50;color:#4CAF50}"
-        "</style>"
-        f'<div class="stepper">{"".join(pills)}</div>'
-    )
+    return f'<div class="stepper">{"".join(pills)}</div>'
 
 
 def _apply_nav_request() -> None:
@@ -509,6 +574,7 @@ def render_sidebar() -> str:
 
 def main() -> None:
     """Route to the page selected in the sidebar."""
+    inject_custom_css()
     _apply_nav_request()
     page = render_sidebar()
     if page == "Ingest":
