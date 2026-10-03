@@ -75,8 +75,8 @@ def evaluate_rag(
     """Evaluate retrieval + generation + judging over ``pairs``.
 
     Returns the retrieval metrics together with mean faithfulness, answer
-    correctness, and answer relevancy. Generation failures on individual
-    queries are scored 0.0 and recorded so runs never abort mid-way.
+    correctness, and answer relevancy. Generation failures are tracked
+    separately and do not distort the generation metrics.
     """
     totals = {
         "hit_rate": 0.0,
@@ -86,6 +86,8 @@ def evaluate_rag(
         "answer_relevancy": 0.0,
     }
     n = len(pairs)
+    successful_queries = 0
+    failed_queries = 0
     for pair in pairs:
         chunks = retriever(pair["question"], k)
         pages = pages_of(chunks)
@@ -99,15 +101,28 @@ def evaluate_rag(
                 answer, pair["expected_answer"], pair["question"], model
             )
             totals["answer_relevancy"] += judge_answer_relevancy(pair["question"], answer, model)
+            successful_queries += 1
         except Exception as exc:  # pylint: disable=broad-exception-caught
             # Network/LLM flakiness on a single query must not abort the run.
             _LOGGER.warning("generation failed for query %r: %s", pair.get("id"), exc)
+            failed_queries += 1
+
+    gen_n = successful_queries if successful_queries > 0 else 1
     return {
-        "avg_hit_rate": totals["hit_rate"] / n,
-        "avg_mrr": totals["mrr"] / n,
-        "avg_faithfulness": totals["faithfulness"] / n,
-        "avg_answer_correctness": totals["answer_correctness"] / n,
-        "avg_answer_relevancy": totals["answer_relevancy"] / n,
+        "avg_hit_rate": totals["hit_rate"] / n if n > 0 else 0.0,
+        "avg_mrr": totals["mrr"] / n if n > 0 else 0.0,
+        "avg_faithfulness": (
+            totals["faithfulness"] / gen_n if successful_queries > 0 else 0.0
+        ),
+        "avg_answer_correctness": (
+            totals["answer_correctness"] / gen_n if successful_queries > 0 else 0.0
+        ),
+        "avg_answer_relevancy": (
+            totals["answer_relevancy"] / gen_n if successful_queries > 0 else 0.0
+        ),
+        "total_queries": n,
+        "successful_queries": successful_queries,
+        "failed_queries": failed_queries,
     }
 
 

@@ -38,7 +38,7 @@ services:
       models:
         condition: service_completed_successfully
     ports:
-      - "8502:8501"
+      - "8501:8501"
     environment:
       LLM_MODEL: qwen2.5:7b
       EMBED_MODEL: nomic-embed-text

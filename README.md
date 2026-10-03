@@ -5,7 +5,7 @@
 
   <p>
     <a href="https://python.org"><img src="https://img.shields.io/badge/Python-3.11%2B-3776AB.svg?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.11+"></a>
-    <img src="https://img.shields.io/badge/tests-108%20passed-brightgreen.svg?style=for-the-badge&logo=pytest&logoColor=white" alt="108 tests passing">
+    <img src="https://img.shields.io/badge/tests-116%20passed-brightgreen.svg?style=for-the-badge&logo=pytest&logoColor=white" alt="116 tests passing">
     <img src="https://img.shields.io/badge/coverage-89%25-brightgreen.svg?style=for-the-badge" alt="89% coverage">
     <img src="https://img.shields.io/badge/pylint-10.00%2F10-brightgreen.svg?style=for-the-badge" alt="Pylint 10.00/10">
     <img src="https://img.shields.io/badge/pyright-0%20errors-brightgreen.svg?style=for-the-badge" alt="Pyright clean">
@@ -131,7 +131,7 @@ rag-evalforge/
 
 All checks pass on every push via GitHub Actions (Python 3.11 / 3.12 / 3.13):
 
-**pytest** 108/108 · **coverage** 89% · **pylint** 10.00/10 · **ruff** 0 errors · **pyright** 0 errors · **bandit** 0 issues · **radon** complexity A (2.83)
+**pytest** 116/116 · **coverage** 89% · **pylint** 10.00/10 · **ruff** 0 errors · **pyright** 0 errors · **bandit** 0 issues · **radon** complexity A (2.83)
 
 ```sh
 make lint      # pylint + ruff

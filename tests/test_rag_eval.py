@@ -87,6 +87,9 @@ class TestEvaluateRag:
             "avg_faithfulness",
             "avg_answer_correctness",
             "avg_answer_relevancy",
+            "total_queries",
+            "successful_queries",
+            "failed_queries",
         }
         assert metrics["avg_hit_rate"] == pytest.approx(1.0)
         assert metrics["avg_mrr"] == pytest.approx(1.0)
