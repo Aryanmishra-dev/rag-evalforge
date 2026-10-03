@@ -66,11 +66,15 @@ STEP_TIPS = {
 
 st.set_page_config(page_title="RAG EvalForge", layout="wide")
 
+
 def inject_custom_css() -> None:
+    """Inject custom CSS for styling the Streamlit app layout."""
     st.markdown(
         """
         <style>
-        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+        @import url(
+            'https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap'
+        );
         
         html, body, [class*="css"] {
             font-family: 'Outfit', sans-serif;
@@ -109,11 +113,21 @@ def inject_custom_css() -> None:
         
         /* Stepper Pills */
         .stepper {display:flex;gap:.75rem;margin:1rem 0 2rem}
-        .steppill {flex:1;text-align:center;padding:.6rem 0;border-radius:.5rem;
-            border:1px solid rgba(255,255,255,0.1);color:#888;background:rgba(255,255,255,0.02);
-            font-weight:600;transition: all 0.3s ease;}
-        .steppill.active {background:linear-gradient(90deg, #8B5CF6, #6D28D9);border-color:#8B5CF6;color:#fff; box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);}
-        .steppill.done {border-color:#8B5CF6;color:#8B5CF6; background:rgba(139, 92, 246, 0.1);}
+        .steppill {
+            flex:1;text-align:center;padding:.6rem 0;border-radius:.5rem;
+            border:1px solid rgba(255,255,255,0.1);color:#888;
+            background:rgba(255,255,255,0.02);
+            font-weight:600;transition: all 0.3s ease;
+        }
+        .steppill.active {
+            background:linear-gradient(90deg, #8B5CF6, #6D28D9);
+            border-color:#8B5CF6;color:#fff; 
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+        }
+        .steppill.done {
+            border-color:#8B5CF6;color:#8B5CF6; 
+            background:rgba(139, 92, 246, 0.1);
+        }
         
         /* Metric cards */
         [data-testid="stMetric"] {
@@ -132,7 +146,9 @@ def inject_custom_css() -> None:
         hr {
             border: 0;
             height: 1px;
-            background-image: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(139, 92, 246, 0.75), rgba(0, 0, 0, 0));
+            background-image: linear-gradient(
+                to right, rgba(0, 0, 0, 0), rgba(139, 92, 246, 0.75), rgba(0, 0, 0, 0)
+            );
         }
         
         </style>

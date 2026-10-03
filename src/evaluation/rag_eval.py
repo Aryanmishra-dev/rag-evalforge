@@ -111,9 +111,7 @@ def evaluate_rag(
     return {
         "avg_hit_rate": totals["hit_rate"] / n if n > 0 else 0.0,
         "avg_mrr": totals["mrr"] / n if n > 0 else 0.0,
-        "avg_faithfulness": (
-            totals["faithfulness"] / gen_n if successful_queries > 0 else 0.0
-        ),
+        "avg_faithfulness": (totals["faithfulness"] / gen_n if successful_queries > 0 else 0.0),
         "avg_answer_correctness": (
             totals["answer_correctness"] / gen_n if successful_queries > 0 else 0.0
         ),
