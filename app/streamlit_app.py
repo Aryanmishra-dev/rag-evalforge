@@ -273,7 +273,7 @@ def render_ingest() -> None:  # pylint: disable=too-many-locals,too-many-stateme
     render_workflow("Ingest")
     st.header("Ingest")
     st.write(
-        "Upload a PDF (up to **200 pages**) to generate embeddings using four "
+        "Upload a PDF (up to **100 pages**) to generate embeddings using four "
         "chunking strategies. The document will be processed and stored for "
         "later evaluation."
     )
@@ -339,10 +339,10 @@ def render_ingest() -> None:  # pylint: disable=too-many-locals,too-many-stateme
 
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("File Name", file_name)
-            col2.metric("Pages", f"{num_pages} / 200")
+            col2.metric("Pages", f"{num_pages} / 100")
             col3.metric("Size", f"{file_size_mb:.1f} ")
 
-            if num_pages > 200:
+            if num_pages > 100:
                 col4.metric("Status", "Too Large")
                 st.error(
                     f"**Maximum page limit exceeded.**\n\nThis document contains "
