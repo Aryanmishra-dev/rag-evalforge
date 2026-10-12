@@ -46,28 +46,53 @@ Everything runs locally — no cloud APIs required.
 
 ## Quick Start
 
+> [!IMPORTANT]
+> **Docker and Ollama are required to start and run RAG EvalForge.**
+> - **Ollama** provides the local LLM (`qwen2.5:7b`) and embedding model (`nomic-embed-text`).
+> - **Docker & Docker Compose** provide the fastest start by containerizing Ollama, pulling models, and running the Streamlit app automatically.
+
 ### Prerequisites
 
-- Python 3.11+ and [Ollama](https://ollama.com/) running locally
+1. **Docker & Docker Compose** (Installed and running) — [Get Docker](https://docs.docker.com/get-docker/)
+2. **Ollama** (Required for local runs outside Docker) — [Install Ollama](https://ollama.com/)
+   ```sh
+   # Start Ollama service, then pull required models:
+   ollama pull nomic-embed-text
+   ollama pull qwen2.5:7b
+   ```
+3. **Python 3.11+** (Required for local runs outside Docker)
+
+### Option 1: Docker Compose (Recommended)
+
+Start Ollama, pull models, and launch the Streamlit app with a single command:
 
 ```sh
-ollama pull nomic-embed-text
-ollama pull qwen2.5:7b
+docker compose up -d --build    # App at http://localhost:8501
 ```
 
-### Install & Run
+To tail logs or stop services:
+```sh
+docker compose logs -f app
+docker compose down
+```
+
+### Option 2: Local Python Environment
+
+If running directly on your machine without Docker, ensure **Ollama is running locally first**:
 
 ```sh
+# 1. Verify Ollama is running and models are ready
+ollama pull nomic-embed-text
+ollama pull qwen2.5:7b
+
+# 2. Setup environment and install dependencies
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 python smoke_test.py
-```
 
-### Docker (alternative)
-
-```sh
-docker compose up -d --build    # App at http://localhost:8501
+# 3. Launch the Streamlit server
+streamlit run app/streamlit_app.py    # App at http://localhost:8501
 ```
 
 ---
